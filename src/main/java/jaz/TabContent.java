@@ -15,4 +15,7 @@ interface TabContent {
 	};
 
 	Component getComponent();
+
+	default void prepareAsync() {
+	}
 }

@@ -11,7 +11,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.swing.JFrame;
 import javax.swing.JTabbedPane;
-import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 
 public final class Window {
@@ -49,6 +48,10 @@ public final class Window {
 		return this;
 	}
 
+	JTabbedPane getTabbedPane() {
+		return _tabbedPane;
+	}
+
 	public Tab tab(String name) {
 		Objects.requireNonNull(name);
 
@@ -57,30 +60,8 @@ public final class Window {
 				_tabs.put(name, new Tab(this, name));
 			}
 			Tab tab = _tabs.get(name);
-			repaintAsync(tab);
+			tab.showAsync();
 			return tab;
 		}
-	}
-
-	private int getTabIndex(String name) {
-		for (int i = 0; i < _tabbedPane.getTabCount(); i++) {
-			if (name.equals(_tabbedPane.getTitleAt(i))) {
-				return i;
-			}
-		}
-		return -1;
-	}
-
-	void repaintAsync(Tab tab) {
-		SwingUtilities.invokeLater(() -> {
-			String name = tab.getName();
-			int tabIndex = getTabIndex(name);
-			if (tabIndex == -1) {
-				_tabbedPane.addTab(name, tab.getContentComponent());
-			} else {
-				_tabbedPane.removeTabAt(tabIndex);
-				_tabbedPane.insertTab(name, null, tab.getContentComponent(), null, tabIndex);
-			}
-		});
 	}
 }

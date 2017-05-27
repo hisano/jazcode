@@ -112,13 +112,13 @@ public final class Table extends Result implements TabContent {
 		return _content;
 	}
 
-	Table prepare() {
+	@Override
+	public void prepareAsync() {
 		SwingUtilities.invokeLater(() -> {
 			_tableModel.clearColumns();
 
 			_tableModel.addStarColumn();
 		});
-		return this;
 	}
 
 	public Table timeColumn() {
@@ -144,12 +144,15 @@ public final class Table extends Result implements TabContent {
 			_table.getRowSorter().setSortKeys(Arrays.asList(new RowSorter.SortKey(0, SortOrder.DESCENDING)));
 
 			List<TableModel.Row> rows = _tableModel.getAllRows();
-			for (int rowIndex = 0; rowIndex < rows.size(); rowIndex++) {
-				OptionalInt maxHeightOptional = rows.get(rowIndex).getAllColumns().stream().filter(column -> column instanceof Image).mapToInt(column -> ((Image)column).getHeight(null)).max();
-				if (maxHeightOptional.isPresent()) {
-					_table.setRowHeight(rowIndex,  Math.max(_minimumRowHeight, maxHeightOptional.getAsInt()));
-				} else {
-					_table.setRowHeight(rowIndex,  _minimumRowHeight);
+			for (int modelRowIndex = 0; modelRowIndex < rows.size(); modelRowIndex++) {
+				int viewRowIndex = _table.getRowSorter().convertRowIndexToView(modelRowIndex);
+				if (viewRowIndex != -1) {
+					OptionalInt maxHeightOptional = rows.get(modelRowIndex).getAllColumns().stream().filter(column -> column instanceof Image).mapToInt(column -> ((Image)column).getHeight(null)).max();
+					if (maxHeightOptional.isPresent()) {
+						_table.setRowHeight(viewRowIndex,  Math.max(_minimumRowHeight, maxHeightOptional.getAsInt()));
+					} else {
+						_table.setRowHeight(viewRowIndex,  _minimumRowHeight);
+					}
 				}
 			}
 
