@@ -5,7 +5,9 @@ import java.awt.Component;
 import java.awt.Image;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
+import java.util.OptionalInt;
 
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
@@ -24,6 +26,8 @@ public final class Table extends Result implements TabContent {
 	private final SearchField _searchField;
 	private final JPanel _content;
 
+	private final int _minimumRowHeight;
+
 	Table() {
 		_tableModel = new TableModel();
 		_table = new JTable(_tableModel);
@@ -36,6 +40,8 @@ public final class Table extends Result implements TabContent {
 		_scrollPane.setBorder(new CompoundBorder(new EmptyBorder(0, 0, Window.BORDER_SIZE, 0), _searchField.getBorder()));
 		_content.add(_scrollPane, BorderLayout.CENTER);
 		_content.add(_searchField, BorderLayout.SOUTH);
+
+		_minimumRowHeight = new JLabel("A").getPreferredSize().height;
 
 		prepareCellRenderer();
 	}
@@ -52,7 +58,6 @@ public final class Table extends Result implements TabContent {
 				} else {
 					component.setIcon(null);
 				}
-				_table.setRowHeight(rowIndex, Math.max(_table.getRowHeight(rowIndex), component.getPreferredSize().height));
 				return component;
 			}
 		});
@@ -89,6 +94,16 @@ public final class Table extends Result implements TabContent {
 		StackTraceElement stackTraceElement = getCallerStackTraceElement();
 		return executeOnEventDispatchThread(() -> {
 			_tableModel.addRow(date, stackTraceElement, columns);
+
+			List<TableModel.Row> rows = _tableModel.getAllRows();
+			for (int rowIndex = 0; rowIndex < rows.size(); rowIndex++) {
+				OptionalInt maxHeightOptional = rows.get(rowIndex).getAllColumns().stream().filter(column -> column instanceof Image).mapToInt(column -> ((Image)column).getHeight(null)).max();
+				if (maxHeightOptional.isPresent()) {
+					_table.setRowHeight(rowIndex,  Math.max(_minimumRowHeight, maxHeightOptional.getAsInt()));
+				} else {
+					_table.setRowHeight(rowIndex,  _minimumRowHeight);
+				}
+			}
 
 			_table.scrollRectToVisible(_table.getCellRect(_table.getRowCount() - 1, 0, true));
 		});
