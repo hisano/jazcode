@@ -2,12 +2,10 @@ package jaz;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
-import java.awt.image.BufferedImage;
+import java.awt.Image;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
 import java.util.Objects;
-import java.util.OptionalInt;
 
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
@@ -44,12 +42,13 @@ public final class Table extends Result implements TabContent {
 			@Override
 			public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int rowIndex, int columnIndex) {
 				JLabel component = (JLabel) defaultRenderer.getTableCellRendererComponent(table, value, isSelected, hasFocus, rowIndex, columnIndex);
-				if (value instanceof BufferedImage) {
+				if (value instanceof Image) {
 					component.setText(null);
-					component.setIcon(new ImageIcon((BufferedImage)value));
+					component.setIcon(new ImageIcon((Image)value));
 				} else {
 					component.setIcon(null);
 				}
+				_table.setRowHeight(rowIndex, Math.max(_table.getRowHeight(rowIndex), component.getPreferredSize().height));
 				return component;
 			}
 		});
@@ -86,14 +85,6 @@ public final class Table extends Result implements TabContent {
 		StackTraceElement stackTraceElement = getCallerStackTraceElement();
 		return executeOnEventDispatchThread(() -> {
 			_tableModel.addRow(date, stackTraceElement, columns);
-
-			List<TableModel.Row> rows = _tableModel.getAllRows();
-			for (int rowIndex = 0; rowIndex < rows.size(); rowIndex++) {
-				OptionalInt maxHeightOptional = rows.get(rowIndex).getAllColumns().stream().filter(column -> column instanceof BufferedImage).mapToInt(column -> ((BufferedImage)column).getHeight()).max();
-				if (maxHeightOptional.isPresent()) {
-					_table.setRowHeight(rowIndex,  maxHeightOptional.getAsInt());
-				}
-			}
 
 			_table.scrollRectToVisible(_table.getCellRect(_table.getRowCount() - 1, 0, true));
 		});

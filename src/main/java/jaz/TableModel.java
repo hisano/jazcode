@@ -1,6 +1,5 @@
 package jaz;
 
-import java.awt.image.BufferedImage;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
@@ -13,31 +12,19 @@ import javax.swing.table.AbstractTableModel;
 final class TableModel extends AbstractTableModel {
 	private static final SimpleDateFormat TIME_FORMATTER = new SimpleDateFormat("HH:mm:ss.SSS");
 
-	private final List<Column> _columns = new LinkedList<>();
+	private final List<Column> _column = new LinkedList<>();
 	private final List<Row> _rows = new LinkedList<>();
+
+	private int _nextColumnIndex;
 
 	@Override
 	public int getColumnCount() {
-		return _columns.size();
+		return _column.size();
 	}
 
 	@Override
 	public String getColumnName(int columnIndex) {
-		return _columns.get(columnIndex).getHeaderName();
-	}
-
-	@Override
-	public Class<?> getColumnClass(int columnIndex) {
-		int parameterIndex = _columns.get(columnIndex).getParameterIndex();
-		if (parameterIndex < 0) {
-			return String.class;
-		}
-
-		boolean hasBufferedImageColumn = _rows.stream().anyMatch(row -> row.getColumn(parameterIndex) instanceof BufferedImage);
-		if (hasBufferedImageColumn) {
-			return BufferedImage.class;
-		}
-		return String.class;
+		return _column.get(columnIndex).getHeaderName();
 	}
 
 	@Override
@@ -47,15 +34,11 @@ final class TableModel extends AbstractTableModel {
 
 	@Override
 	public Object getValueAt(int rowIndex, int columnIndex) {
-		return _columns.get(columnIndex).getValueAt(rowIndex);
-	}
-
-	boolean hasHeader() {
-		return false;
+		return _column.get(columnIndex).getValueAt(rowIndex);
 	}
 
 	void clearColumns() {
-		_columns.clear();
+		_nextColumnIndex = 0;
 	}
 
 	void addTimeColumn() {
@@ -82,12 +65,10 @@ final class TableModel extends AbstractTableModel {
 	}
 
 	void addColumn(int parameterIndex, String headerName, Function<Row, Object> getValueAtFunction) {
-		_columns.add(new Column() {
-			@Override
-			public int getParameterIndex() {
-				return parameterIndex;
-			}
-
+		if (_nextColumnIndex < _column.size()) {
+			_column.remove(_nextColumnIndex);
+		}
+		_column.add(_nextColumnIndex, new Column() {
 			@Override
 			public String getHeaderName() {
 				return headerName;
@@ -98,6 +79,7 @@ final class TableModel extends AbstractTableModel {
 				return getValueAtFunction.apply(_rows.get(rowIndex));
 			}
 		});
+		_nextColumnIndex++;
 	}
 
 	void addRow(Date date, StackTraceElement stackTraceElement, Object[] columns) {
@@ -114,7 +96,6 @@ final class TableModel extends AbstractTableModel {
 	}
 
 	private interface Column {
-		int getParameterIndex();
 		String getHeaderName();
 		Object getValueAt(int rowIndex);
 	}
