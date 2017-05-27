@@ -7,14 +7,6 @@
 	<name>JazCode</name>
 	<description>Debugger Tools for Java</description>
 
-	<dependencies>
-		<dependency>
-			<groupId>com.jidesoft</groupId>
-			<artifactId>jide-oss</artifactId>
-			<version>3.6.18</version>
-		</dependency>
-	</dependencies>
-
 	<build>
 		<plugins>
 			<plugin>
