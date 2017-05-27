@@ -2,14 +2,20 @@ package jaz;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.image.BufferedImage;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
+import java.util.OptionalInt;
 
+import javax.swing.ImageIcon;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.SwingUtilities;
+import javax.swing.table.TableCellRenderer;
 
 public final class Table extends Result implements TabContent {
 	private final TableModel _tableModel;
@@ -28,6 +34,25 @@ public final class Table extends Result implements TabContent {
 		_content.setLayout(new BorderLayout());
 		_content.add(_scrollPane, BorderLayout.CENTER);
 		_content.add(_searchField, BorderLayout.SOUTH);
+
+		prepareCellRenderer();
+	}
+
+	private void prepareCellRenderer() {
+		TableCellRenderer defaultRenderer = _table.getDefaultRenderer(Object.class);
+		_table.setDefaultRenderer(Object.class, new TableCellRenderer() {
+			@Override
+			public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int rowIndex, int columnIndex) {
+				JLabel component = (JLabel) defaultRenderer.getTableCellRendererComponent(table, value, isSelected, hasFocus, rowIndex, columnIndex);
+				if (value instanceof BufferedImage) {
+					component.setText(null);
+					component.setIcon(new ImageIcon((BufferedImage)value));
+				} else {
+					component.setIcon(null);
+				}
+				return component;
+			}
+		});
 	}
 
 	@Override
@@ -61,6 +86,14 @@ public final class Table extends Result implements TabContent {
 		StackTraceElement stackTraceElement = getCallerStackTraceElement();
 		return executeOnEventDispatchThread(() -> {
 			_tableModel.addRow(date, stackTraceElement, columns);
+
+			List<TableModel.Row> rows = _tableModel.getAllRows();
+			for (int rowIndex = 0; rowIndex < rows.size(); rowIndex++) {
+				OptionalInt maxHeightOptional = rows.get(rowIndex).getAllColumns().stream().filter(column -> column instanceof BufferedImage).mapToInt(column -> ((BufferedImage)column).getHeight()).max();
+				if (maxHeightOptional.isPresent()) {
+					_table.setRowHeight(rowIndex,  maxHeightOptional.getAsInt());
+				}
+			}
 
 			_table.scrollRectToVisible(_table.getCellRect(_table.getRowCount() - 1, 0, true));
 		});

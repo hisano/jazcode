@@ -1,6 +1,8 @@
 package jaz;
 
+import java.awt.image.BufferedImage;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -25,6 +27,20 @@ final class TableModel extends AbstractTableModel {
 	}
 
 	@Override
+	public Class<?> getColumnClass(int columnIndex) {
+		int parameterIndex = _columns.get(columnIndex).getParameterIndex();
+		if (parameterIndex < 0) {
+			return String.class;
+		}
+
+		boolean hasBufferedImageColumn = _rows.stream().anyMatch(row -> row.getColumn(parameterIndex) instanceof BufferedImage);
+		if (hasBufferedImageColumn) {
+			return BufferedImage.class;
+		}
+		return String.class;
+	}
+
+	@Override
 	public int getRowCount() {
 		return _rows.size();
 	}
@@ -43,11 +59,11 @@ final class TableModel extends AbstractTableModel {
 	}
 
 	void addTimeColumn() {
-		addColumnAndRepaint("Time", row -> formatTime(row._date));
+		addMetadataColumnAndRepaint("Time", row -> formatTime(row._date));
 	}
 
 	void addClassColumn() {
-		addColumnAndRepaint("Class", row -> {
+		addMetadataColumnAndRepaint("Class", row -> {
 			try {
 				return Class.forName(row._stackTraceElement.getClassName()).getSimpleName();
 			} catch (ClassNotFoundException e) {
@@ -57,16 +73,21 @@ final class TableModel extends AbstractTableModel {
 	}
 
 	void addLocationColumn() {
-		addColumnAndRepaint("Location", row -> row._stackTraceElement.getFileName() + ":" + row._stackTraceElement.getLineNumber());
+		addMetadataColumnAndRepaint("Location", row -> row._stackTraceElement.getFileName() + ":" + row._stackTraceElement.getLineNumber());
 	}
 
-	void addColumnAndRepaint(String headerName, Function<Row, Object> getValueAtFunction) {
-		addColumn(headerName, getValueAtFunction);
+	void addMetadataColumnAndRepaint(String headerName, Function<Row, Object> getValueAtFunction) {
+		addColumn(-1, headerName, getValueAtFunction);
 		super.fireTableStructureChanged();
 	}
 
-	void addColumn(String headerName, Function<Row, Object> getValueAtFunction) {
+	void addColumn(int parameterIndex, String headerName, Function<Row, Object> getValueAtFunction) {
 		_columns.add(new Column() {
+			@Override
+			public int getParameterIndex() {
+				return parameterIndex;
+			}
+
 			@Override
 			public String getHeaderName() {
 				return headerName;
@@ -83,17 +104,22 @@ final class TableModel extends AbstractTableModel {
 		_rows.add(new Row(date, stackTraceElement, columns));
 		for (int i = 0; i < columns.length; i++) {
 			int columnIndex = i;
-			addColumn("Parameter[" + i + "]", row -> row._columns[columnIndex]);
+			addColumn(i, "Parameter[" + i + "]", row -> row.getColumn(columnIndex));
 		}
 		super.fireTableStructureChanged();
 	}
 
+	List<Row> getAllRows() {
+		return _rows;
+	}
+
 	private interface Column {
+		int getParameterIndex();
 		String getHeaderName();
 		Object getValueAt(int rowIndex);
 	}
 
-	private class Row {
+	class Row {
 		final Date _date;
 		final StackTraceElement _stackTraceElement;
 		final Object[] _columns;
@@ -102,6 +128,17 @@ final class TableModel extends AbstractTableModel {
 			_date = date;
 			_stackTraceElement = stackTraceElement;
 			_columns = columns;
+		}
+
+		Object getColumn(int columnIndex) {
+			if (_columns.length <= columnIndex) {
+				return null;
+			}
+			return _columns[columnIndex];
+		}
+
+		List<Object> getAllColumns() {
+			return Arrays.asList(_columns);
 		}
 	}
 
