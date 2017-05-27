@@ -1,10 +1,12 @@
 package jaz;
 
+import java.awt.BorderLayout;
 import java.awt.Component;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Objects;
 
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.SwingUtilities;
@@ -13,11 +15,24 @@ public final class Table extends Result implements TabContent {
 	private final TableModel _tableModel;
 	private final JTable _table;
 	private final JScrollPane _scrollPane;
+	private final SearchField _searchField;
+	private final JPanel _content;
 
 	Table() {
 		_tableModel = new TableModel();
 		_table = new JTable(_tableModel);
 		_scrollPane = new JScrollPane(_table);
+		_searchField = new SearchField(_table, "Search Table...");
+
+		_content = new JPanel();
+		_content.setLayout(new BorderLayout());
+		_content.add(_scrollPane, BorderLayout.CENTER);
+		_content.add(_searchField, BorderLayout.SOUTH);
+	}
+
+	@Override
+	public Component getComponent() {
+		return _content;
 	}
 
 	Table prepare() {
@@ -25,11 +40,6 @@ public final class Table extends Result implements TabContent {
 			_tableModel.clearColumns();
 		});
 		return this;
-	}
-
-	@Override
-	public Component getComponent() {
-		return _scrollPane;
 	}
 
 	public Table timeColumn() {
