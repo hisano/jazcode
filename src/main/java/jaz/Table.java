@@ -3,6 +3,8 @@ package jaz;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Image;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -14,10 +16,14 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.RowSorter;
+import javax.swing.SortOrder;
 import javax.swing.SwingUtilities;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.TableCellRenderer;
+
+import jaz.TableModel.Star;
 
 public final class Table extends Result implements TabContent {
 	private final TableModel _tableModel;
@@ -41,9 +47,40 @@ public final class Table extends Result implements TabContent {
 		_content.add(_scrollPane, BorderLayout.CENTER);
 		_content.add(_searchField, BorderLayout.SOUTH);
 
-		_minimumRowHeight = new JLabel("A").getPreferredSize().height;
+		_minimumRowHeight = Math.max(new JLabel("A").getPreferredSize().height, Icons.STAR_ON.getIconHeight());
 
 		prepareCellRenderer();
+		prepareListeners();
+	}
+
+	private void prepareListeners() {
+		_table.addMouseListener(new MouseAdapter() {
+			public void mouseClicked(MouseEvent e) {
+				if (e.getClickCount() != 1) {
+					return;
+				}
+
+				int viewRowIndex = _table.getSelectedRow();
+				int viewColumnIndex = _table.getSelectedColumn();
+				if (viewRowIndex == -1 || viewColumnIndex == -1) {
+					return;
+				}
+
+				int modelRowIndex = _table.convertRowIndexToModel(viewRowIndex);
+				int modelColumnIndex = _table.convertColumnIndexToModel(viewColumnIndex);
+				Object value = _tableModel.getValueAt(modelRowIndex, modelColumnIndex);
+				if (value instanceof Star) {
+					if (value == Star.OFF) {
+						_tableModel.getRow(modelRowIndex)._star = Star.ON;
+					} else {
+						_tableModel.getRow(modelRowIndex)._star = Star.OFF;
+					}
+					_tableModel.fireTableCellUpdated(modelRowIndex, modelColumnIndex);
+					_table.getRowSorter().allRowsChanged();
+					_table.scrollRectToVisible(_table.getCellRect(_table.getSelectedRow(), 0, true));
+				}
+			}
+		});
 	}
 
 	private void prepareCellRenderer() {
@@ -55,6 +92,13 @@ public final class Table extends Result implements TabContent {
 				if (value instanceof Image) {
 					component.setText(null);
 					component.setIcon(new ImageIcon((Image)value));
+				} else if (value instanceof Star) {
+					component.setText(null);
+					if ((Star)value == Star.ON) {
+						component.setIcon(Icons.STAR_ON);
+					} else {
+						component.setIcon(Icons.STAR_OFF);
+					}
 				} else {
 					component.setIcon(null);
 				}
@@ -71,6 +115,8 @@ public final class Table extends Result implements TabContent {
 	Table prepare() {
 		SwingUtilities.invokeLater(() -> {
 			_tableModel.clearColumns();
+
+			_tableModel.addStarColumn();
 		});
 		return this;
 	}
@@ -94,6 +140,8 @@ public final class Table extends Result implements TabContent {
 		StackTraceElement stackTraceElement = getCallerStackTraceElement();
 		return executeOnEventDispatchThread(() -> {
 			_tableModel.addRow(date, stackTraceElement, columns);
+
+			_table.getRowSorter().setSortKeys(Arrays.asList(new RowSorter.SortKey(0, SortOrder.DESCENDING)));
 
 			List<TableModel.Row> rows = _tableModel.getAllRows();
 			for (int rowIndex = 0; rowIndex < rows.size(); rowIndex++) {

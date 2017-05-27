@@ -41,6 +41,10 @@ final class TableModel extends AbstractTableModel {
 		_nextColumnIndex = 0;
 	}
 
+	void addStarColumn() {
+		addColumn("", row -> row._star);
+	}
+
 	void addTimeColumn() {
 		addMetadataColumnAndRepaint("Time", row -> formatTime(row._date));
 	}
@@ -60,11 +64,11 @@ final class TableModel extends AbstractTableModel {
 	}
 
 	void addMetadataColumnAndRepaint(String headerName, Function<Row, Object> getValueAtFunction) {
-		addColumn(-1, headerName, getValueAtFunction);
+		addColumn(headerName, getValueAtFunction);
 		super.fireTableStructureChanged();
 	}
 
-	void addColumn(int parameterIndex, String headerName, Function<Row, Object> getValueAtFunction) {
+	void addColumn(String headerName, Function<Row, Object> getValueAtFunction) {
 		if (_nextColumnIndex < _column.size()) {
 			_column.remove(_nextColumnIndex);
 		}
@@ -86,9 +90,13 @@ final class TableModel extends AbstractTableModel {
 		_rows.add(new Row(date, stackTraceElement, columns));
 		for (int i = 0; i < columns.length; i++) {
 			int columnIndex = i;
-			addColumn(i, "Parameter[" + i + "]", row -> row.getColumn(columnIndex));
+			addColumn("Parameter[" + i + "]", row -> row.getColumn(columnIndex));
 		}
 		super.fireTableStructureChanged();
+	}
+
+	Row getRow(int rowIndex) {
+		return _rows.get(rowIndex);
 	}
 
 	List<Row> getAllRows() {
@@ -100,10 +108,16 @@ final class TableModel extends AbstractTableModel {
 		Object getValueAt(int rowIndex);
 	}
 
+	enum Star {
+		ON, OFF;
+	}
+
 	class Row {
 		final Date _date;
 		final StackTraceElement _stackTraceElement;
 		final Object[] _columns;
+
+		Star _star = Star.OFF;
 
 		Row(Date date, StackTraceElement stackTraceElement, Object[] columns) {
 			_date = date;

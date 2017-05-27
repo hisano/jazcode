@@ -22,7 +22,7 @@ final class SearchField extends JTextField {
 
 	SearchField(JTable table, String textIfEmpty) {
 		table.setAutoCreateRowSorter(true);
-		_tableRowSorter = (TableRowSorter<? extends javax.swing.table.TableModel>)table.getRowSorter();
+		_tableRowSorter = (TableRowSorter<TableModel>)table.getRowSorter();
 
 		_textIfEmpty = textIfEmpty;
 
