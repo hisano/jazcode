@@ -1,6 +1,6 @@
 package jaz;
 
-public final class Result {
+public class Result {
 	Result() {
 	}
 

@@ -1,51 +1,71 @@
 package jaz;
 
-import java.text.SimpleDateFormat;
+import java.awt.Component;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Objects;
 
+import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.SwingUtilities;
-import javax.swing.table.DefaultTableModel;
 
-public final class Table {
-	private final SimpleDateFormat TIME_FORMATTER = new SimpleDateFormat("HH:mm:ss.SSS");
-
+public final class Table extends Result implements TabContent {
+	private final TableModel _tableModel;
 	private final JTable _table;
+	private final JScrollPane _scrollPane;
 
-	Table(JTable table) {
-		_table = table;
+	Table() {
+		_tableModel = new TableModel();
+		_table = new JTable(_tableModel);
+		_scrollPane = new JScrollPane(_table);
 	}
 
-	public Result row(Object... columns) {
+	Table prepare() {
+		SwingUtilities.invokeLater(() -> {
+			_tableModel.clearColumns();
+		});
+		return this;
+	}
+
+	@Override
+	public Component getComponent() {
+		return _scrollPane;
+	}
+
+	public Table timeColumn() {
+		return executeOnEventDispatchThread(_tableModel::addTimeColumn);
+	}
+
+	public Table classColumn() {
+		return executeOnEventDispatchThread(_tableModel::addClassColumn);
+	}
+
+	public Table locationColumn() {
+		return executeOnEventDispatchThread(_tableModel::addLocationColumn);
+	}
+
+	public Table columns(Object... columns) {
 		Objects.requireNonNull(columns);
 
-		Object[] columnsWithTimeAndLine = new Object[columns.length + 2];
-		columnsWithTimeAndLine[0] = formatTime(new Date());
-		StackTraceElement stackTraceElement = getTopStackTraceElement();
-		columnsWithTimeAndLine[1] = stackTraceElement.getFileName() + ":" + stackTraceElement.getLineNumber();
-		System.arraycopy(columns, 0, columnsWithTimeAndLine, 2, columns.length);
+		Date date = new Date();
+		StackTraceElement stackTraceElement = getCallerStackTraceElement();
+		return executeOnEventDispatchThread(() -> {
+			if (!_tableModel.hasHeader()) {
+				_table.setTableHeader(null);
+			}
 
-		SwingUtilities.invokeLater(() -> {
-			_table.setTableHeader(null);
-
-			DefaultTableModel model = (DefaultTableModel) _table.getModel();
-			model.setColumnCount(columnsWithTimeAndLine.length);
-			model.addRow(columnsWithTimeAndLine);
+			_tableModel.addRow(date, stackTraceElement, columns);
 
 			_table.scrollRectToVisible(_table.getCellRect(_table.getRowCount() - 1, 0, true));
 		});
-		return new Result();
 	}
 
-	private StackTraceElement getTopStackTraceElement() {
+	private Table executeOnEventDispatchThread(Runnable operation) {
+		SwingUtilities.invokeLater(operation);
+		return this;
+	}
+
+	private static StackTraceElement getCallerStackTraceElement() {
 		return Arrays.stream(Thread.currentThread().getStackTrace()).filter(e -> !e.getMethodName().equals("getStackTrace") && !e.getClassName().startsWith(Table.class.getPackage().getName())).findFirst().get();
-	}
-
-	private String formatTime(Date date) {
-		synchronized (TIME_FORMATTER) {
-			return TIME_FORMATTER.format(date);
-		}
 	}
 }

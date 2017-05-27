@@ -72,10 +72,10 @@ public final class Window {
 			String name = tab.getName();
 			int tabIndex = getTabIndex(name);
 			if (tabIndex == -1) {
-				_tabbedPane.addTab(name, tab.getContent());
+				_tabbedPane.addTab(name, tab.getContentComponent());
 			} else {
 				_tabbedPane.removeTabAt(tabIndex);
-				_tabbedPane.insertTab(name, null, tab.getContent(), null, tabIndex);
+				_tabbedPane.insertTab(name, null, tab.getContentComponent(), null, tabIndex);
 			}
 		});
 	}
