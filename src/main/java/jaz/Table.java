@@ -50,10 +50,6 @@ public final class Table extends Result implements TabContent {
 		Date date = new Date();
 		StackTraceElement stackTraceElement = getCallerStackTraceElement();
 		return executeOnEventDispatchThread(() -> {
-			if (!_tableModel.hasHeader()) {
-				_table.setTableHeader(null);
-			}
-
 			_tableModel.addRow(date, stackTraceElement, columns);
 
 			_table.scrollRectToVisible(_table.getCellRect(_table.getRowCount() - 1, 0, true));

@@ -4,6 +4,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Function;
 
 import javax.swing.table.AbstractTableModel;
 
@@ -14,13 +15,18 @@ final class TableModel extends AbstractTableModel {
 	private final List<Row> _rows = new LinkedList<>();
 
 	@Override
-	public int getRowCount() {
-		return _rows.size();
+	public int getColumnCount() {
+		return _columns.size();
 	}
 
 	@Override
-	public int getColumnCount() {
-		return _columns.size();
+	public String getColumnName(int columnIndex) {
+		return _columns.get(columnIndex).getHeaderName();
+	}
+
+	@Override
+	public int getRowCount() {
+		return _rows.size();
 	}
 
 	@Override
@@ -37,70 +43,47 @@ final class TableModel extends AbstractTableModel {
 	}
 
 	void addTimeColumn() {
-		_columns.add(new Column() {
-			@Override
-			public String getHeaderName() {
-				return "Time";
-			}
-
-			@Override
-			public String getValueAt(int rowIndex) {
-				return formatTime(_rows.get(rowIndex)._date);
-			}
-		});
-		super.fireTableStructureChanged();
+		addColumnAndRepaint("Time", row -> formatTime(row._date));
 	}
 
 	void addClassColumn() {
-		_columns.add(new Column() {
-			@Override
-			public String getHeaderName() {
-				return "Class";
-			}
-
-			@Override
-			public Object getValueAt(int rowIndex) {
-				try {
-					return Class.forName(_rows.get(rowIndex)._stackTraceElement.getClassName()).getSimpleName();
-				} catch (ClassNotFoundException e) {
-					return "";
-				}
+		addColumnAndRepaint("Class", row -> {
+			try {
+				return Class.forName(row._stackTraceElement.getClassName()).getSimpleName();
+			} catch (ClassNotFoundException e) {
+				return "";
 			}
 		});
-		super.fireTableStructureChanged();
 	}
 
 	void addLocationColumn() {
+		addColumnAndRepaint("Location", row -> row._stackTraceElement.getFileName() + ":" + row._stackTraceElement.getLineNumber());
+	}
+
+	void addColumnAndRepaint(String headerName, Function<Row, Object> getValueAtFunction) {
+		addColumn(headerName, getValueAtFunction);
+		super.fireTableStructureChanged();
+	}
+
+	void addColumn(String headerName, Function<Row, Object> getValueAtFunction) {
 		_columns.add(new Column() {
 			@Override
 			public String getHeaderName() {
-				return "Location";
+				return headerName;
 			}
 
 			@Override
 			public Object getValueAt(int rowIndex) {
-				StackTraceElement stackTraceElement = _rows.get(rowIndex)._stackTraceElement;
-				return stackTraceElement.getFileName() + ":" + stackTraceElement.getLineNumber();
+				return getValueAtFunction.apply(_rows.get(rowIndex));
 			}
 		});
-		super.fireTableStructureChanged();
 	}
 
 	void addRow(Date date, StackTraceElement stackTraceElement, Object[] columns) {
 		_rows.add(new Row(date, stackTraceElement, columns));
 		for (int i = 0; i < columns.length; i++) {
 			int columnIndex = i;
-			_columns.add(new Column() {
-				@Override
-				public String getHeaderName() {
-					return "";
-				}
-
-				@Override
-				public String getValueAt(int rowIndex) {
-					return _rows.get(rowIndex)._columns[columnIndex].toString();
-				}
-			});
+			addColumn("Parameter[" + i + "]", row -> row._columns[columnIndex]);
 		}
 		super.fireTableStructureChanged();
 	}
