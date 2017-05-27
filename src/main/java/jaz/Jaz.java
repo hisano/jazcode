@@ -7,10 +7,9 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class Jaz {
 	private static final Map<String, Window> _windows = new ConcurrentHashMap<String, Window>();
 
-	public static Tab tab(String name) {
+	public static Table table(String name) {
 		Objects.requireNonNull(name);
-
-		return showDefaultWindow().tab(name);
+		return showDefaultWindow().tab(name).table();
 	}
 
 	private static Window showDefaultWindow() {
