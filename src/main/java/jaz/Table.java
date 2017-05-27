@@ -13,6 +13,8 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.SwingUtilities;
+import javax.swing.border.CompoundBorder;
+import javax.swing.border.EmptyBorder;
 import javax.swing.table.TableCellRenderer;
 
 public final class Table extends Result implements TabContent {
@@ -29,7 +31,9 @@ public final class Table extends Result implements TabContent {
 		_searchField = new SearchField(_table, "Search Table...");
 
 		_content = new JPanel();
+		_content.setBorder(new EmptyBorder(Window.BORDER_SIZE, Window.BORDER_SIZE, Window.BORDER_SIZE, Window.BORDER_SIZE));
 		_content.setLayout(new BorderLayout());
+		_scrollPane.setBorder(new CompoundBorder(new EmptyBorder(0, 0, Window.BORDER_SIZE, 0), _searchField.getBorder()));
 		_content.add(_scrollPane, BorderLayout.CENTER);
 		_content.add(_searchField, BorderLayout.SOUTH);
 

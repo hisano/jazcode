@@ -12,8 +12,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.swing.JFrame;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
+import javax.swing.border.EmptyBorder;
 
 public final class Window {
+	static final int BORDER_SIZE = 5;
+
 	private final JFrame _frame;
 	private final JTabbedPane _tabbedPane;
 
@@ -27,6 +30,7 @@ public final class Window {
 		_frame.setLocation(desktopArea.width - _frame.getWidth(), desktopArea.height - _frame.getHeight());
 
 		_tabbedPane = new JTabbedPane();
+		_tabbedPane.setBorder(new EmptyBorder(Window.BORDER_SIZE, Window.BORDER_SIZE, Window.BORDER_SIZE, Window.BORDER_SIZE));
 		_frame.setContentPane(_tabbedPane);
 	}
 
