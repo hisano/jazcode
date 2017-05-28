@@ -129,6 +129,22 @@ public final class Table extends Result implements TabContent {
 		return executeOnEventDispatchThread(_tableModel::addClassColumn);
 	}
 
+	public Table fullClassColumn() {
+		return executeOnEventDispatchThread(_tableModel::addFullClassColumn);
+	}
+
+	public Table methodColumn() {
+		return executeOnEventDispatchThread(_tableModel::addMethodColumn);
+	}
+
+	public Table fileColumn() {
+		return executeOnEventDispatchThread(_tableModel::addFileColumn);
+	}
+
+	public Table lineNumberColumn() {
+		return executeOnEventDispatchThread(_tableModel::addLineNumberColumn);
+	}
+
 	public Table locationColumn() {
 		return executeOnEventDispatchThread(_tableModel::addLocationColumn);
 	}

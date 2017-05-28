@@ -59,6 +59,22 @@ final class TableModel extends AbstractTableModel {
 		});
 	}
 
+	void addFullClassColumn() {
+		addMetadataColumnAndRepaint("Full Class", row -> row._stackTraceElement.getClassName());
+	}
+
+	void addMethodColumn() {
+		addMetadataColumnAndRepaint("Method", row -> row._stackTraceElement.getMethodName());
+	}
+
+	void addFileColumn() {
+		addMetadataColumnAndRepaint("File", row -> row._stackTraceElement.getFileName());
+	}
+
+	void addLineNumberColumn() {
+		addMetadataColumnAndRepaint("Line Number", row -> row._stackTraceElement.getLineNumber());
+	}
+
 	void addLocationColumn() {
 		addMetadataColumnAndRepaint("Location", row -> row._stackTraceElement.getFileName() + ":" + row._stackTraceElement.getLineNumber());
 	}
