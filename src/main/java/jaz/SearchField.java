@@ -21,7 +21,6 @@ final class SearchField extends JTextField {
 	private final String _textIfEmpty;
 
 	SearchField(JTable table, String textIfEmpty) {
-		table.setAutoCreateRowSorter(true);
 		_tableRowSorter = (TableRowSorter<TableModel>)table.getRowSorter();
 
 		_textIfEmpty = textIfEmpty;

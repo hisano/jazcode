@@ -40,7 +40,10 @@ public final class Table extends TabContent {
 
 	Table() {
 		_tableModel = new TableModel();
+
 		_table = new JTable(_tableModel);
+		_table.setAutoCreateRowSorter(true);
+
 		_scrollPane = new JScrollPane(_table);
 		_searchField = new SearchField(_table, "Search Table...");
 
@@ -81,7 +84,9 @@ public final class Table extends TabContent {
 				}
 
 				Row row = _tableModel.getRow(_table.convertRowIndexToModel(rowIndex));
-				component.setBackground(row._backgroundColor);
+				if (row._backgroundColor != null) {
+					component.setBackground(row._backgroundColor);
+				}
 
 				return component;
 			}

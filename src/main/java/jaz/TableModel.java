@@ -173,7 +173,7 @@ final class TableModel extends AbstractTableModel {
 		final Object[] _columns;
 
 		Star _star = Star.OFF;
-		Color _backgroundColor = Color.WHITE;
+		Color _backgroundColor = null;
 
 		Row(Date date, StackTraceElement stackTraceElement, Object[] columns) {
 			_date = date;
