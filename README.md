@@ -33,7 +33,7 @@ Add the latest Maven dependency to your project.
 <dependency>
 	<groupId>com.github.hisano</groupId>
 	<artifactId>jazcode</artifactId>
-	<version>master-SNAPSHOT</version>
+	<version>1.0.0</version>
 </dependency>
 ```
 
