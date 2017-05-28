@@ -23,7 +23,7 @@ import javax.swing.SortOrder;
 import javax.swing.SwingUtilities;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
-import javax.swing.table.TableCellRenderer;
+import javax.swing.table.DefaultTableCellRenderer;
 
 import jaz.TableModel.COLOR;
 import jaz.TableModel.Row;
@@ -61,11 +61,10 @@ public final class Table extends TabContent {
 	}
 
 	private void prepareCellRenderer() {
-		TableCellRenderer defaultRenderer = _table.getDefaultRenderer(Object.class);
-		_table.setDefaultRenderer(Object.class, new TableCellRenderer() {
+		_table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
 			@Override
 			public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int rowIndex, int columnIndex) {
-				JLabel component = (JLabel) defaultRenderer.getTableCellRendererComponent(table, value, isSelected, hasFocus, rowIndex, columnIndex);
+				JLabel component = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, rowIndex, columnIndex);
 				if (value instanceof Image) {
 					component.setText(null);
 					component.setIcon(new ImageIcon((Image)value));
@@ -84,8 +83,16 @@ public final class Table extends TabContent {
 				}
 
 				Row row = _tableModel.getRow(_table.convertRowIndexToModel(rowIndex));
-				if (row._backgroundColor != null) {
-					component.setBackground(row._backgroundColor);
+				if (row._backgroundColor != null && !isSelected) {
+					// Don't call setBackground because the call set unselectedBackground.
+					// https://stackoverflow.com/questions/28800370/tablecellrenderer-sets-color-to-many-cells-and-not-just-one
+					JLabel label = new JLabel(component.getText(), component.getIcon(), component.getHorizontalAlignment());
+					label.setBorder(component.getBorder());
+					label.setOpaque(true);
+					label.setForeground(component.getForeground());
+					label.setBackground(row._backgroundColor);
+					label.setFont(component.getFont());
+					return label;
 				}
 
 				return component;
@@ -100,31 +107,42 @@ public final class Table extends TabContent {
 					return;
 				}
 
-				int viewRowIndex = _table.getSelectedRow();
-				int viewColumnIndex = _table.getSelectedColumn();
+				int viewRowIndex = _table.rowAtPoint(e.getPoint());
+				int viewColumnIndex = _table.columnAtPoint(e.getPoint());
 				if (viewRowIndex == -1 || viewColumnIndex == -1) {
 					return;
 				}
+
+				int[] selectedViewRowIndexes = Arrays.copyOf(_table.getSelectedRows(), _table.getSelectedRows().length + 1);
+				selectedViewRowIndexes[selectedViewRowIndexes.length - 1] = viewRowIndex;
 
 				int modelRowIndex = _table.convertRowIndexToModel(viewRowIndex);
 				int modelColumnIndex = _table.convertColumnIndexToModel(viewColumnIndex);
 				Object value = _tableModel.getValueAt(modelRowIndex, modelColumnIndex);
 				if (value instanceof Star) {
-					if (value == Star.OFF) {
-						_tableModel.getRow(modelRowIndex)._star = Star.ON;
-					} else {
-						_tableModel.getRow(modelRowIndex)._star = Star.OFF;
+					for (int selectedViewRowIndex: selectedViewRowIndexes) {
+						int selectedModelRowIndex = _table.convertRowIndexToModel(selectedViewRowIndex);
+						if (value == Star.OFF) {
+							_tableModel.getRow(selectedModelRowIndex)._star = Star.ON;
+						} else {
+							_tableModel.getRow(selectedModelRowIndex)._star = Star.OFF;
+						}
+						_tableModel.fireTableRowsUpdated(selectedModelRowIndex, selectedModelRowIndex);
 					}
-					_tableModel.fireTableCellUpdated(modelRowIndex, modelColumnIndex);
 					_table.getRowSorter().allRowsChanged();
-					_table.scrollRectToVisible(_table.getCellRect(_table.getSelectedRow(), 0, true));
+					_table.scrollRectToVisible(_table.getCellRect(_table.convertRowIndexToView(modelRowIndex), 0, true));
+					_table.clearSelection();
 				} else if (value == COLOR.MARKER) {
 					Row row = _tableModel.getRow(modelRowIndex);
 					Color newColor = JColorChooser.showDialog(Table.this._scrollPane, "Select color for cell background", row._backgroundColor);
 					if (newColor != null) {
-						row._backgroundColor = newColor;
-						_tableModel.fireTableRowsUpdated(modelRowIndex, modelRowIndex);
+						for (int selectedViewRowIndex: selectedViewRowIndexes) {
+							int selectedModelRowIndex = _table.convertRowIndexToModel(selectedViewRowIndex);
+							_tableModel.getRow(selectedModelRowIndex)._backgroundColor = newColor;
+							_tableModel.fireTableRowsUpdated(selectedModelRowIndex, selectedModelRowIndex);
+						}
 					}
+					_table.clearSelection();
 				}
 			}
 		});
