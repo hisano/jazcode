@@ -113,7 +113,7 @@ final class TableModel extends AbstractTableModel {
 		return isExtended;
 	}
 
-	void addRow(Date date, StackTraceElement stackTraceElement, Object[] columns) {
+	boolean addRow(Date date, StackTraceElement stackTraceElement, Object[] columns) {
 		_rows.add(new Row(date, stackTraceElement, columns));
 
 		boolean isExtended = false;
@@ -126,6 +126,8 @@ final class TableModel extends AbstractTableModel {
 		}
 
 		super.fireTableRowsInserted(_rows.size() - 1, _rows.size() - 1);
+
+		return isExtended;
 	}
 
 	Row getRow(int rowIndex) {
