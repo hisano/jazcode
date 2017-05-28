@@ -4,8 +4,8 @@ import java.awt.Component;
 
 import javax.swing.JPanel;
 
-interface TabContent {
-	TabContent EMPTY = new TabContent() {
+abstract class TabContent extends Result {
+	static final TabContent EMPTY = new TabContent() {
 		Component _component = new JPanel();
 
 		@Override
@@ -14,8 +14,8 @@ interface TabContent {
 		}
 	};
 
-	Component getComponent();
+	abstract Component getComponent();
 
-	default void prepareAsync() {
+	void prepareAsync() {
 	}
 }

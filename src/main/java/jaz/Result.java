@@ -4,11 +4,11 @@ public class Result {
 	Result() {
 	}
 
-	public boolean suspendHere() {
+	public final boolean suspendHere() {
 		return true;
 	}
 
-	public boolean skipBreakpoint() {
+	public final boolean skipBreakpoint() {
 		return false;
 	}
 }

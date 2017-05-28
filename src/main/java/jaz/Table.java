@@ -25,7 +25,7 @@ import javax.swing.table.TableCellRenderer;
 
 import jaz.TableModel.Star;
 
-public final class Table extends Result implements TabContent {
+public final class Table extends TabContent {
 	private final TableModel _tableModel;
 	private final JTable _table;
 	private final JScrollPane _scrollPane;
@@ -108,12 +108,12 @@ public final class Table extends Result implements TabContent {
 	}
 
 	@Override
-	public Component getComponent() {
+	Component getComponent() {
 		return _content;
 	}
 
 	@Override
-	public void prepareAsync() {
+	void prepareAsync() {
 		SwingUtilities.invokeLater(() -> {
 			_tableModel.clearColumns();
 
