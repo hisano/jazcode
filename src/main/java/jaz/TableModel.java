@@ -86,13 +86,17 @@ final class TableModel extends AbstractTableModel {
 	}
 
 	void addMetadataColumnAndRepaint(String headerName, Function<Row, Object> getValueAtFunction) {
-		addColumn(headerName, getValueAtFunction);
-		super.fireTableStructureChanged();
+		boolean isExtended = addColumn(headerName, getValueAtFunction);
+		if (isExtended) {
+			super.fireTableStructureChanged();
+		}
 	}
 
-	void addColumn(String headerName, Function<Row, Object> getValueAtFunction) {
+	boolean addColumn(String headerName, Function<Row, Object> getValueAtFunction) {
+		boolean isExtended = true;
 		if (_nextColumnIndex < _column.size()) {
 			_column.remove(_nextColumnIndex);
+			isExtended = false;
 		}
 		_column.add(_nextColumnIndex, new Column() {
 			@Override
@@ -106,15 +110,22 @@ final class TableModel extends AbstractTableModel {
 			}
 		});
 		_nextColumnIndex++;
+		return isExtended;
 	}
 
 	void addRow(Date date, StackTraceElement stackTraceElement, Object[] columns) {
 		_rows.add(new Row(date, stackTraceElement, columns));
+
+		boolean isExtended = false;
 		for (int i = 0; i < columns.length; i++) {
 			int columnIndex = i;
-			addColumn("Parameter[" + i + "]", row -> row.getColumn(columnIndex));
+			isExtended |= addColumn("Parameter[" + i + "]", row -> row.getColumn(columnIndex));
 		}
-		super.fireTableStructureChanged();
+		if (isExtended) {
+			super.fireTableStructureChanged();
+		}
+
+		super.fireTableRowsInserted(_rows.size() - 1, _rows.size() - 1);
 	}
 
 	Row getRow(int rowIndex) {
