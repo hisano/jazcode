@@ -141,6 +141,8 @@ public final class Table extends Result implements TabContent {
 		return executeOnEventDispatchThread(() -> {
 			_tableModel.addRow(date, stackTraceElement, columns);
 
+			_table.getColumnModel().getColumn(0).setMaxWidth(Icons.STAR_ON.getIconWidth() / 5 * 6);
+
 			_table.getRowSorter().setSortKeys(Arrays.asList(new RowSorter.SortKey(0, SortOrder.DESCENDING)));
 
 			List<TableModel.Row> rows = _tableModel.getAllRows();
