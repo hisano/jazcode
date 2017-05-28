@@ -10,7 +10,7 @@ import java.util.function.Function;
 import javax.swing.table.AbstractTableModel;
 
 final class TableModel extends AbstractTableModel {
-	private static final SimpleDateFormat TIME_FORMATTER = new SimpleDateFormat("HH:mm:ss.SSS");
+	static final String DEFAULT_TIME_FORMAT = "HH:mm:ss.SSS";
 
 	private final List<Column> _column = new LinkedList<>();
 	private final List<Row> _rows = new LinkedList<>();
@@ -45,8 +45,14 @@ final class TableModel extends AbstractTableModel {
 		addColumn("", row -> row._star);
 	}
 
-	void addTimeColumn() {
-		addMetadataColumnAndRepaint("Time", row -> formatTime(row._date));
+	void addTimeColumn(String format) {
+		addMetadataColumnAndRepaint("Time", row -> {
+			try {
+				return new SimpleDateFormat(format).format(row._date);
+			} catch (IllegalArgumentException e) {
+				return new SimpleDateFormat(DEFAULT_TIME_FORMAT).format(row._date);
+			}
+		});
 	}
 
 	void addClassColumn() {
@@ -150,12 +156,6 @@ final class TableModel extends AbstractTableModel {
 
 		List<Object> getAllColumns() {
 			return Arrays.asList(_columns);
-		}
-	}
-
-	private static String formatTime(Date date) {
-		synchronized (TIME_FORMATTER) {
-			return TIME_FORMATTER.format(date);
 		}
 	}
 }

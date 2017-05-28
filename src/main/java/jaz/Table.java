@@ -122,7 +122,12 @@ public final class Table extends Result implements TabContent {
 	}
 
 	public Table timeColumn() {
-		return executeOnEventDispatchThread(_tableModel::addTimeColumn);
+		return timeColumn(TableModel.DEFAULT_TIME_FORMAT);
+	}
+
+	public Table timeColumn(String format) {
+		Objects.requireNonNull(format);
+		return executeOnEventDispatchThread(() -> _tableModel.addTimeColumn(format));
 	}
 
 	public Table classColumn() {
