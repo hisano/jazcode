@@ -1,5 +1,6 @@
 package jaz;
 
+import java.awt.Color;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
@@ -16,6 +17,7 @@ final class TableModel extends AbstractTableModel {
 	private final List<Row> _rows = new LinkedList<>();
 
 	private int _nextColumnIndex;
+	private int _iconColumnLength;
 
 	@Override
 	public int getColumnCount() {
@@ -37,12 +39,26 @@ final class TableModel extends AbstractTableModel {
 		return _column.get(columnIndex).getValueAt(rowIndex);
 	}
 
+	int getIconColumnLength() {
+		return _iconColumnLength;
+	}
+
 	void clearColumns() {
 		_nextColumnIndex = 0;
+		_iconColumnLength = 0;
 	}
 
 	void addStarColumn() {
-		addColumn("", row -> row._star);
+		addIconColumn(row -> row._star);
+	}
+
+	void addColorColumn() {
+		addIconColumn(row -> COLOR.MARKER);
+	}
+
+	private void addIconColumn(Function<Row, Object> getValueAtFunction) {
+		addColumn("", getValueAtFunction);
+		_iconColumnLength++;
 	}
 
 	void addTimeColumn(String format) {
@@ -147,12 +163,17 @@ final class TableModel extends AbstractTableModel {
 		ON, OFF;
 	}
 
+	enum COLOR {
+		MARKER;
+	}
+
 	class Row {
 		final Date _date;
 		final StackTraceElement _stackTraceElement;
 		final Object[] _columns;
 
 		Star _star = Star.OFF;
+		Color _backgroundColor = Color.WHITE;
 
 		Row(Date date, StackTraceElement stackTraceElement, Object[] columns) {
 			_date = date;

@@ -1,6 +1,7 @@
 package jaz;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Image;
 import java.awt.event.MouseAdapter;
@@ -12,6 +13,7 @@ import java.util.Objects;
 import java.util.OptionalInt;
 
 import javax.swing.ImageIcon;
+import javax.swing.JColorChooser;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -23,6 +25,8 @@ import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.TableCellRenderer;
 
+import jaz.TableModel.COLOR;
+import jaz.TableModel.Row;
 import jaz.TableModel.Star;
 
 public final class Table extends TabContent {
@@ -53,6 +57,37 @@ public final class Table extends TabContent {
 		prepareListeners();
 	}
 
+	private void prepareCellRenderer() {
+		TableCellRenderer defaultRenderer = _table.getDefaultRenderer(Object.class);
+		_table.setDefaultRenderer(Object.class, new TableCellRenderer() {
+			@Override
+			public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int rowIndex, int columnIndex) {
+				JLabel component = (JLabel) defaultRenderer.getTableCellRendererComponent(table, value, isSelected, hasFocus, rowIndex, columnIndex);
+				if (value instanceof Image) {
+					component.setText(null);
+					component.setIcon(new ImageIcon((Image)value));
+				} else if (value instanceof Star) {
+					component.setText(null);
+					if ((Star)value == Star.ON) {
+						component.setIcon(Icons.STAR_ON);
+					} else {
+						component.setIcon(Icons.STAR_OFF);
+					}
+				} else if (value == COLOR.MARKER) {
+					component.setText(null);
+					component.setIcon(Icons.COLOR);
+				} else {
+					component.setIcon(null);
+				}
+
+				Row row = _tableModel.getRow(_table.convertRowIndexToModel(rowIndex));
+				component.setBackground(row._backgroundColor);
+
+				return component;
+			}
+		});
+	}
+
 	private void prepareListeners() {
 		_table.addMouseListener(new MouseAdapter() {
 			public void mouseClicked(MouseEvent e) {
@@ -78,31 +113,14 @@ public final class Table extends TabContent {
 					_tableModel.fireTableCellUpdated(modelRowIndex, modelColumnIndex);
 					_table.getRowSorter().allRowsChanged();
 					_table.scrollRectToVisible(_table.getCellRect(_table.getSelectedRow(), 0, true));
-				}
-			}
-		});
-	}
-
-	private void prepareCellRenderer() {
-		TableCellRenderer defaultRenderer = _table.getDefaultRenderer(Object.class);
-		_table.setDefaultRenderer(Object.class, new TableCellRenderer() {
-			@Override
-			public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int rowIndex, int columnIndex) {
-				JLabel component = (JLabel) defaultRenderer.getTableCellRendererComponent(table, value, isSelected, hasFocus, rowIndex, columnIndex);
-				if (value instanceof Image) {
-					component.setText(null);
-					component.setIcon(new ImageIcon((Image)value));
-				} else if (value instanceof Star) {
-					component.setText(null);
-					if ((Star)value == Star.ON) {
-						component.setIcon(Icons.STAR_ON);
-					} else {
-						component.setIcon(Icons.STAR_OFF);
+				} else if (value == COLOR.MARKER) {
+					Row row = _tableModel.getRow(modelRowIndex);
+					Color newColor = JColorChooser.showDialog(Table.this._scrollPane, "Select color for cell background", row._backgroundColor);
+					if (newColor != null) {
+						row._backgroundColor = newColor;
+						_tableModel.fireTableRowsUpdated(modelRowIndex, modelRowIndex);
 					}
-				} else {
-					component.setIcon(null);
 				}
-				return component;
 			}
 		});
 	}
@@ -118,6 +136,7 @@ public final class Table extends TabContent {
 			_tableModel.clearColumns();
 
 			_tableModel.addStarColumn();
+			_tableModel.addColorColumn();
 		});
 	}
 
@@ -162,7 +181,9 @@ public final class Table extends TabContent {
 		return executeOnEventDispatchThread(() -> {
 			boolean isExtended = _tableModel.addRow(date, stackTraceElement, columns);
 			if (isExtended) {
-				_table.getColumnModel().getColumn(0).setMaxWidth(Icons.STAR_ON.getIconWidth() / 5 * 6);
+				for (int i = 0; i < _tableModel.getIconColumnLength(); i++) {
+					_table.getColumnModel().getColumn(i).setMaxWidth(Icons.STAR_ON.getIconWidth() / 5 * 6);
+				}
 				_table.getRowSorter().setSortKeys(Arrays.asList(new RowSorter.SortKey(0, SortOrder.DESCENDING)));
 			}
 
