@@ -44,7 +44,10 @@ public final class Window {
 	}
 
 	Window show() {
-		_frame.setVisible(true);
+		if (!_frame.isVisible()) {
+			_frame.setAutoRequestFocus(false);
+			_frame.setVisible(true);
+		}
 		return this;
 	}
 
