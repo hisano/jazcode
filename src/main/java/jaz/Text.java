@@ -31,7 +31,11 @@ public final class Text extends TabContent {
 	}
 
 	void setText(String newValue, String syntax) {
-		_textArea.setText(newValue);
+		if (!_textArea.getText().equals(newValue)) {
+			int caretPosition = _textArea.getCaretPosition();
+			_textArea.setText(newValue);
+			_textArea.setCaretPosition(caretPosition);
+		}
 		_textArea.setSyntaxEditingStyle("text/" + syntax);
 		_textArea.setCodeFoldingEnabled(true);
 	}

@@ -8,6 +8,7 @@ final class Tab {
 	private final String _name;
 
 	private volatile TabContent _tabContent = TabContent.EMPTY;
+	private volatile boolean _isTabContentChanged;
 
 	Tab(Window window, String name) {
 		_window = window;
@@ -17,6 +18,7 @@ final class Tab {
 	Table table() {
 		if (!(_tabContent instanceof Table)) {
 			_tabContent = new Table();
+			_isTabContentChanged = true;
 		}
 
 		prepareAndShowAsync();
@@ -27,6 +29,7 @@ final class Tab {
 	Text text(String value, String syntax) {
 		if (!(_tabContent instanceof Text)) {
 			_tabContent = new Text();
+			_isTabContentChanged = true;
 		}
 
 		((Text)_tabContent).setText(value, syntax);
@@ -54,7 +57,8 @@ final class Tab {
 		}
 		if (tabIndex == -1) {
 			tabbedPane.addTab(_name, _tabContent.getComponent());
-		} else {
+		} else if (_isTabContentChanged) {
+			_isTabContentChanged = false;
 			tabbedPane.removeTabAt(tabIndex);
 			tabbedPane.insertTab(_name, null, _tabContent.getComponent(), null, tabIndex);
 		}
