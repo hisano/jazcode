@@ -31,22 +31,25 @@ public final class Text extends TabContent {
 	}
 
 	public Text value(String value) {
-		if (!_textArea.getText().equals(value)) {
-			int caretPosition = _textArea.getCaretPosition();
-			_textArea.setText(value);
-			_textArea.setCaretPosition(caretPosition);
-		}
-		return this;
+		return executeOnEventDispatchThread(() -> {
+			if (!_textArea.getText().equals(value)) {
+				int caretPosition = _textArea.getCaretPosition();
+				_textArea.setText(value);
+				_textArea.setCaretPosition(caretPosition);
+			}
+		});
 	}
 
 	public Text syntax(String syntax) {
-		_textArea.setSyntaxEditingStyle("text/" + syntax);
-		_textArea.setCodeFoldingEnabled(true);
-		return this;
+		return executeOnEventDispatchThread(() -> {
+			_textArea.setSyntaxEditingStyle("text/" + syntax);
+			_textArea.setCodeFoldingEnabled(true);
+		});
 	}
 
 	public Text lineWrap() {
-		_textArea.setLineWrap(true);
-		return this;
+		return executeOnEventDispatchThread(() -> {
+			_textArea.setLineWrap(true);
+		});
 	}
 }

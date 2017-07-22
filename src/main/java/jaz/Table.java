@@ -20,7 +20,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.RowSorter;
 import javax.swing.SortOrder;
-import javax.swing.SwingUtilities;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -226,11 +225,6 @@ public final class Table extends TabContent {
 
 			_table.scrollRectToVisible(_table.getCellRect(_table.getRowCount() - 1, 0, true));
 		});
-	}
-
-	private Table executeOnEventDispatchThread(Runnable operation) {
-		SwingUtilities.invokeLater(operation);
-		return this;
 	}
 
 	private static StackTraceElement getCallerStackTraceElement() {

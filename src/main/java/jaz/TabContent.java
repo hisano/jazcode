@@ -3,6 +3,7 @@ package jaz;
 import java.awt.Component;
 
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 
 abstract class TabContent extends Result {
 	static final TabContent EMPTY = new TabContent() {
@@ -18,4 +19,9 @@ abstract class TabContent extends Result {
 	}
 
 	abstract Component getComponent();
+
+	<T> T executeOnEventDispatchThread(Runnable operation) {
+		SwingUtilities.invokeLater(operation);
+		return (T)this;
+	}
 }
