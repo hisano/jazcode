@@ -14,33 +14,49 @@ final class Tab {
 		_name = name;
 	}
 
-	void showAsync() {
-		SwingUtilities.invokeLater(() -> {
-			JTabbedPane tabbedPane = _window.getTabbedPane();
-			int tabIndex = -1;
-			for (int i = 0; i < tabbedPane.getTabCount(); i++) {
-				if (_name.equals(tabbedPane.getTitleAt(i))) {
-					tabIndex = i;
-					break;
-				}
-			}
-			if (tabIndex == -1) {
-				tabbedPane.addTab(_name, _tabContent.getComponent());
-			} else {
-				tabbedPane.removeTabAt(tabIndex);
-				tabbedPane.insertTab(_name, null, _tabContent.getComponent(), null, tabIndex);
-			}
-		});
-	}
-
 	Table table() {
 		if (!(_tabContent instanceof Table)) {
 			_tabContent = new Table();
 		}
 
-		_tabContent.prepareAsync();
-		showAsync();
+		prepareAndShowAsync();
 
 		return (Table)_tabContent;
+	}
+
+	Text text(String value, String syntax) {
+		if (!(_tabContent instanceof Text)) {
+			_tabContent = new Text();
+		}
+
+		((Text)_tabContent).setText(value, syntax);
+
+		prepareAndShowAsync();
+
+		return (Text)_tabContent;
+	}
+
+	private void prepareAndShowAsync() {
+		SwingUtilities.invokeLater(() -> {
+			_tabContent.prepare();
+			showTab();
+		});
+	}
+
+	private void showTab() {
+		JTabbedPane tabbedPane = _window.getTabbedPane();
+		int tabIndex = -1;
+		for (int i = 0; i < tabbedPane.getTabCount(); i++) {
+			if (_name.equals(tabbedPane.getTitleAt(i))) {
+				tabIndex = i;
+				break;
+			}
+		}
+		if (tabIndex == -1) {
+			tabbedPane.addTab(_name, _tabContent.getComponent());
+		} else {
+			tabbedPane.removeTabAt(tabIndex);
+			tabbedPane.insertTab(_name, null, _tabContent.getComponent(), null, tabIndex);
+		}
 	}
 }

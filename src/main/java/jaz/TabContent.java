@@ -14,8 +14,8 @@ abstract class TabContent extends Result {
 		}
 	};
 
-	abstract Component getComponent();
-
-	void prepareAsync() {
+	void prepare() {
 	}
+
+	abstract Component getComponent();
 }

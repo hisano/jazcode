@@ -33,7 +33,9 @@ public final class Table extends TabContent {
 	private final TableModel _tableModel;
 	private final JTable _table;
 	private final JScrollPane _scrollPane;
+
 	private final SearchField _searchField;
+
 	private final JPanel _content;
 
 	private final int _minimumRowHeight;
@@ -45,6 +47,7 @@ public final class Table extends TabContent {
 		_table.setAutoCreateRowSorter(true);
 
 		_scrollPane = new JScrollPane(_table);
+
 		_searchField = new SearchField(_table, "Search Table...");
 
 		_content = new JPanel();
@@ -149,18 +152,16 @@ public final class Table extends TabContent {
 	}
 
 	@Override
-	Component getComponent() {
-		return _content;
+	void prepare() {
+		_tableModel.clearColumns();
+
+		_tableModel.addStarColumn();
+		_tableModel.addColorColumn();
 	}
 
 	@Override
-	void prepareAsync() {
-		SwingUtilities.invokeLater(() -> {
-			_tableModel.clearColumns();
-
-			_tableModel.addStarColumn();
-			_tableModel.addColorColumn();
-		});
+	Component getComponent() {
+		return _content;
 	}
 
 	public Table timeColumn() {

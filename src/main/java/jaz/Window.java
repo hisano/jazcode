@@ -62,9 +62,7 @@ public final class Window {
 			if (!_tabs.containsKey(name)) {
 				_tabs.put(name, new Tab(this, name));
 			}
-			Tab tab = _tabs.get(name);
-			tab.showAsync();
-			return tab;
+			return _tabs.get(name);
 		}
 	}
 }
