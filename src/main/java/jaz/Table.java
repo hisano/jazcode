@@ -18,11 +18,13 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.RowFilter;
 import javax.swing.RowSorter;
 import javax.swing.SortOrder;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableRowSorter;
 
 import jaz.TableModel.COLOR;
 import jaz.TableModel.Row;
@@ -33,7 +35,7 @@ public final class Table extends TabContent {
 	private final JTable _table;
 	private final JScrollPane _scrollPane;
 
-	private final SearchField _searchField;
+	private final AbstractSearchField _searchField;
 
 	private final JPanel _content;
 
@@ -47,7 +49,7 @@ public final class Table extends TabContent {
 
 		_scrollPane = new JScrollPane(_table);
 
-		_searchField = new SearchField(_table, "Search Table...");
+		_searchField = new SearchField();
 
 		_content = new JPanel();
 		_content.setBorder(new EmptyBorder(Window.BORDER_SIZE, Window.BORDER_SIZE, Window.BORDER_SIZE, Window.BORDER_SIZE));
@@ -229,5 +231,35 @@ public final class Table extends TabContent {
 
 	private static StackTraceElement getCallerStackTraceElement() {
 		return Arrays.stream(Thread.currentThread().getStackTrace()).filter(e -> !e.getMethodName().equals("getStackTrace") && !e.getClassName().startsWith(Table.class.getPackage().getName())).findFirst().get();
+	}
+
+	private final class SearchField extends AbstractSearchField {
+		private final TableRowSorter<? extends TableModel> _tableRowSorter;
+
+		SearchField() {
+			super("Search Table...");
+
+			_tableRowSorter = (TableRowSorter<TableModel>)_table.getRowSorter();
+		}
+
+		@Override
+		void search(String text) {
+			if (text.isEmpty()) {
+				_tableRowSorter.setRowFilter(null);
+			} else {
+				_tableRowSorter.setRowFilter(new RowFilter<TableModel, Integer>() {
+					@Override
+					public boolean include(RowFilter.Entry<? extends TableModel, ? extends Integer> entry) {
+						for (int i = 0, length = entry.getValueCount(); i < length; i++) {
+							String value = entry.getStringValue(i);
+							if (value.contains(text)) {
+								return true;
+							}
+						}
+						return false;
+					}
+				});
+			}
+		}
 	}
 }

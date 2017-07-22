@@ -7,22 +7,15 @@ import java.awt.RenderingHints;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 
-import javax.swing.JTable;
 import javax.swing.JTextField;
-import javax.swing.RowFilter;
 import javax.swing.UIManager;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.table.TableModel;
-import javax.swing.table.TableRowSorter;
 
-final class SearchField extends JTextField {
-	private final TableRowSorter<? extends TableModel> _tableRowSorter;
+abstract class AbstractSearchField extends JTextField {
 	private final String _textIfEmpty;
 
-	SearchField(JTable table, String textIfEmpty) {
-		_tableRowSorter = (TableRowSorter<TableModel>)table.getRowSorter();
-
+	AbstractSearchField(String textIfEmpty) {
 		_textIfEmpty = textIfEmpty;
 
 		addFocusListener(new FocusListener() {
@@ -52,27 +45,11 @@ final class SearchField extends JTextField {
 			public void changedUpdate(DocumentEvent e) {
 				search();
 			}
-		});
-	}
 
-	private void search() {
-		String text = getText();
-		if (text.isEmpty()) {
-			_tableRowSorter.setRowFilter(null);
-		} else {
-			_tableRowSorter.setRowFilter(new RowFilter<TableModel, Integer>() {
-				@Override
-				public boolean include(RowFilter.Entry<? extends TableModel, ? extends Integer> entry) {
-					for (int i = 0, length = entry.getValueCount(); i < length; i++) {
-						String value = entry.getStringValue(i);
-						if (value.contains(text)) {
-							return true;
-						}
-					}
-					return false;
-				}
-			});
-		}
+			private void search() {
+				AbstractSearchField.this.search(getText());
+			}
+		});
 	}
 
 	@Override
@@ -96,4 +73,6 @@ final class SearchField extends JTextField {
 			}
 		}
 	}
+
+	abstract void search(String text);
 }
