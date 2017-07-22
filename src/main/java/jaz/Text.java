@@ -53,7 +53,7 @@ public final class Text extends TabContent {
 
 			int oldCaretPosition = _textArea.getCaretPosition();
 			_textArea.setText(value);
-			_textArea.setCaretPosition(Math.max(_textArea.getDocument().getLength(), oldCaretPosition));
+			_textArea.setCaretPosition(Math.min(_textArea.getDocument().getLength(), oldCaretPosition));
 			_searchField.search(_searchField.getText());
 		});
 	}
