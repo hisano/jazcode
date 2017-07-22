@@ -30,13 +30,23 @@ public final class Text extends TabContent {
 		return _content;
 	}
 
-	void setText(String newValue, String syntax) {
-		if (!_textArea.getText().equals(newValue)) {
+	public Text value(String value) {
+		if (!_textArea.getText().equals(value)) {
 			int caretPosition = _textArea.getCaretPosition();
-			_textArea.setText(newValue);
+			_textArea.setText(value);
 			_textArea.setCaretPosition(caretPosition);
 		}
+		return this;
+	}
+
+	public Text syntax(String syntax) {
 		_textArea.setSyntaxEditingStyle("text/" + syntax);
 		_textArea.setCodeFoldingEnabled(true);
+		return this;
+	}
+
+	public Text lineWrap() {
+		_textArea.setLineWrap(true);
+		return this;
 	}
 }
