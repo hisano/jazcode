@@ -45,14 +45,14 @@ public final class Text extends TabContent {
 		return _content;
 	}
 
-	public Text value(String value) {
+	public Text content(String text) {
 		return executeOnEventDispatchThread(() -> {
-			if (_textArea.getText().equals(value)) {
+			if (_textArea.getText().equals(text)) {
 				return;
 			}
 
 			int oldCaretPosition = _textArea.getCaretPosition();
-			_textArea.setText(value);
+			_textArea.setText(text);
 			_textArea.setCaretPosition(Math.min(_textArea.getDocument().getLength(), oldCaretPosition));
 			_searchField.search(_searchField.getText());
 		});
